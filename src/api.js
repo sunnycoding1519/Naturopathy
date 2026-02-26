@@ -1,15 +1,13 @@
 import axios from "axios";
 
 const API = axios.create({
-  baseURL: "http://localhost:5000"
+  baseURL: "https://naturopathy-backend.onrender.com"
 });
 
-/* AUTO SEND TOKEN */
 API.interceptors.request.use((req) => {
-
   const token = localStorage.getItem("token");
 
-  if(token){
+  if (token) {
     req.headers.authorization = token;
   }
 

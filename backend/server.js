@@ -9,10 +9,11 @@ const fs = require("fs");
 const jwt = require("jsonwebtoken");
 
 const app = express();
+const path = require("path");
 
 app.use(cors());
 app.use(express.json());
-app.use("/uploads", express.static("uploads"));
+app.use("/uploads", express.static(uploadDir));
 
 /* ===============================
    CONFIG
@@ -21,6 +22,15 @@ app.use("/uploads", express.static("uploads"));
 const DATA_FILE = "data.json";
 const ADMIN_FILE = "admins.json";
 const SECRET = "naturopathy_secret_key";
+
+/* ===============================
+   CREATE UPLOADS FOLDER (RENDER FIX)
+================================ */
+
+// create uploads folder automatically
+if (!fs.existsSync("uploads")) {
+  fs.mkdirSync("uploads");
+}
 
 /* ===== READ ADMIN USERS ===== */
 
@@ -49,14 +59,21 @@ function getAdmins() {
 ================================ */
 
 function verifyToken(req, res, next) {
-  const token = req.headers.authorization;
 
-  if (!token) {
+  const authHeader = req.headers.authorization;
+
+  if (!authHeader) {
     return res.status(403).json({ message: "No token provided" });
   }
 
+  // remove "Bearer "
+  const token = authHeader.split(" ")[1];
+
   jwt.verify(token, SECRET, (err, decoded) => {
-    if (err) return res.status(401).json({ message: "Invalid token" });
+    if (err) {
+      console.log("JWT ERROR:", err);
+      return res.status(401).json({ message: "Invalid token" });
+    }
 
     req.user = decoded;
     next();
@@ -69,13 +86,12 @@ function verifyToken(req, res, next) {
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, "uploads/");
+    cb(null, "./uploads");
   },
   filename: (req, file, cb) => {
     cb(null, Date.now() + "-" + file.originalname);
   }
 });
-
 const upload = multer({ storage });
 
 /* ===============================
@@ -206,7 +222,7 @@ app.post("/upload", verifyToken, (req, res) => {
       const newMedia = {
         id: Date.now(),
         type,
-        url: `http://localhost:5000/uploads/${req.file.filename}`
+        url: `https://naturopathy-backend.onrender.com/uploads/${req.file.filename}`
       };
 
       data.media.push(newMedia);
