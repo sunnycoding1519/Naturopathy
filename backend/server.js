@@ -22,15 +22,22 @@ app.use("/uploads", express.static(uploadDir));
 const DATA_FILE = "data.json";
 const ADMIN_FILE = "admins.json";
 const SECRET = "naturopathy_secret_key";
-
 /* ===============================
-   CREATE UPLOADS FOLDER (RENDER FIX)
+   UPLOAD DIRECTORY (RENDER FINAL FIX)
 ================================ */
 
-// create uploads folder automatically
-if (!fs.existsSync("uploads")) {
-  fs.mkdirSync("uploads");
+const path = require("path");
+
+const uploadDir = path.join(__dirname, "uploads");
+
+// ✅ create uploads folder FIRST
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir, { recursive: true });
+  console.log("✅ uploads folder created");
 }
+
+// ✅ THEN serve static files
+app.use("/uploads", express.static(uploadDir));
 
 /* ===== READ ADMIN USERS ===== */
 
@@ -86,7 +93,7 @@ function verifyToken(req, res, next) {
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, "./uploads");
+    cb(null, uploadDir);
   },
   filename: (req, file, cb) => {
     cb(null, Date.now() + "-" + file.originalname);
