@@ -1,0 +1,56 @@
+/* PAGE */
+.media-page{
+  text-align:center;
+}
+
+.media-title{
+  margin-bottom:35px;
+  font-size:40px;
+}
+
+/* GRID LAYOUT */
+.media-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
+  gap:25px;
+}
+
+/* CARD */
+.media-card{
+  background:rgba(255,255,255,0.05);
+  border-radius:14px;
+  overflow:hidden;
+  -webkit-backdrop-filter:blur(14px);
+  backdrop-filter:blur(10px);
+  transition:0.35s;
+  position:relative;
+}
+
+/* SAME SIZE MEDIA */
+.media-card img,
+.media-card video{
+  width:100%;
+  height:260px;
+  object-fit:cover;   /* ⭐ IMPORTANT FIX */
+  display:block;
+  border-radius:14px;
+}
+
+/* HOVER EFFECT */
+.media-card:hover{
+  transform:translateY(-8px) scale(1.02);
+  box-shadow:0 15px 35px rgba(0,0,0,0.4);
+}
+
+/* VIDEO STYLE */
+.media-card video{
+  background:black;
+}
+
+/* MOBILE */
+@media(max-width:768px){
+  .media-card img,
+  .media-card video{
+    height:200px;
+  }
+}

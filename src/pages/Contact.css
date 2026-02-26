@@ -1,0 +1,65 @@
+.contact-container{
+  max-width:700px;
+  margin:auto;
+  padding-top:120px;
+  text-align:center;
+}
+
+.subtitle{
+  opacity:0.8;
+  margin-bottom:25px;
+}
+
+/* CARD */
+.contact-card{
+  background:rgba(255,255,255,0.06);
+ -webkit-backdrop-filter:blur(14px);
+  backdrop-filter:blur(14px);
+  padding:30px;
+  border-radius:16px;
+  box-shadow:0 10px 25px rgba(0,0,0,0.3);
+}
+
+.contact-card input,
+.contact-card textarea{
+  width:100%;
+  padding:12px;
+  margin:10px 0;
+  border:none;
+  border-radius:10px;
+}
+
+.contact-card button{
+  background:linear-gradient(135deg,#00c9a7,#00f5d4);
+  border:none;
+  padding:12px;
+  border-radius:10px;
+  cursor:pointer;
+  font-weight:600;
+  margin-top:10px;
+}
+
+/* CONTACT BUTTONS */
+
+.contact-info{
+  margin-top:30px;
+}
+
+.call-btn,
+.whatsapp-btn{
+  display:inline-block;
+  margin:10px;
+  padding:12px 20px;
+  border-radius:10px;
+  text-decoration:none;
+  color:white;
+  font-weight:600;
+}
+
+.call-btn{
+  background:linear-gradient(135deg,#ff9966,#ff5e62);
+}
+
+.whatsapp-btn{
+  background:linear-gradient(135deg,#25D366,#1ebe5d);
+}
