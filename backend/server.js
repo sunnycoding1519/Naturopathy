@@ -205,52 +205,42 @@ app.get("/media", (req, res) => {
    MEDIA UPLOAD (FIXED)
 ================================ */
 
-app.post("/upload", verifyToken, (req, res) => {
+app.post("/upload", verifyToken, upload.single("file"), (req, res) => {
 
-  upload.single("file")(req, res, function (err) {
+  try {
 
-    if (err) {
-      console.log("Upload error:", err);
-      return res.status(500).json({ message: "Upload failed" });
-    }
-
-    if (!req.file) {
+    if (!req.file)
       return res.status(400).json({ message: "No file uploaded" });
-    }
 
-    try {
+    const data = readData();
 
-      const data = readData();
+    const type = req.file.mimetype.startsWith("video")
+      ? "video"
+      : "photo";
 
-      const type = req.file.mimetype.startsWith("video")
-        ? "video"
-        : "photo";
+    const newMedia = {
+      id: Date.now(),
+      type,
+      url: `${req.protocol}://${req.get("host")}/uploads/${req.file.filename}`
+    };
 
-      const newMedia = {
-        id: Date.now(),
-        type,
-        url: `https://naturopathy-backend.onrender.com/uploads/${req.file.filename}`
-      };
+    data.media.push(newMedia);
+    saveData(data);
 
-      data.media.push(newMedia);
-      saveData(data);
+    res.json(newMedia);
 
-      res.json(newMedia);
-
-    } catch (e) {
-      console.log("Server crash:", e);
-      res.status(500).json({ message: "Server error" });
-    }
-
-  });
-
+  } catch (err) {
+    console.log("UPLOAD ERROR:", err);
+    res.status(500).json({ message: "Server error" });
+  }
 });
-// delete media
+
 app.delete("/media/:id", verifyToken, (req, res) => {
+
   const data = readData();
 
   data.media = data.media.filter(
-    (m) => m.id != req.params.id
+    m => m.id != req.params.id
   );
 
   saveData(data);
