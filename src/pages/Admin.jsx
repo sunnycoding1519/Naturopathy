@@ -44,7 +44,7 @@ export default function Admin(){
   };
 
   /* UPLOAD MEDIA */
-  const uploadMedia=()=>{
+ const uploadMedia = async () => {
 
     if(!file) return;
 

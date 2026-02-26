@@ -4,14 +4,16 @@ const API = axios.create({
   baseURL: "https://naturopathy-backend.onrender.com"
 });
 
-API.interceptors.request.use((req) => {
+// AUTO ADD TOKEN IN EVERY REQUEST
+API.interceptors.request.use((config) => {
+
   const token = localStorage.getItem("token");
 
   if (token) {
-    req.headers.authorization = token;
+    config.headers.Authorization = `Bearer ${token}`;
   }
 
-  return req;
+  return config;
 });
 
 export default API;
