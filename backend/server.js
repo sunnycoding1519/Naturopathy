@@ -7,12 +7,13 @@ const cors = require("cors");
 const multer = require("multer");
 const fs = require("fs");
 const jwt = require("jsonwebtoken");
-const path = require("path");
 
 const app = express();
+const path = require("path");
 
 app.use(cors());
 app.use(express.json());
+app.use("/uploads", express.static(uploadDir));
 
 /* ===============================
    CONFIG
@@ -21,20 +22,28 @@ app.use(express.json());
 const DATA_FILE = "data.json";
 const ADMIN_FILE = "admins.json";
 const SECRET = "naturopathy_secret_key";
-
 /* ===============================
-   CREATE UPLOAD FOLDER (RENDER FIX)
+   UPLOAD DIRECTORY (RENDER FINAL FIX)
 ================================ */
 
-// absolute uploads path (IMPORTANT)
+const path = require("path");
+
 const uploadDir = path.join(__dirname, "uploads");
 
+// ✅ create uploads folder FIRST
 if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir, { recursive: true });
+  console.log("✅ uploads folder created");
 }
 
-// serve uploads publicly
+// ✅ THEN serve static files
 app.use("/uploads", express.static(uploadDir));
+
+/* ===== READ ADMIN USERS ===== */
+
+function getAdmins() {
+  return JSON.parse(fs.readFileSync("admins.json"));
+}
 
 /* ===============================
    HELPERS
@@ -60,13 +69,18 @@ function verifyToken(req, res, next) {
 
   const authHeader = req.headers.authorization;
 
-  if (!authHeader)
-    return res.status(403).json({ message: "No token" });
+  if (!authHeader) {
+    return res.status(403).json({ message: "No token provided" });
+  }
 
+  // remove "Bearer "
   const token = authHeader.split(" ")[1];
 
   jwt.verify(token, SECRET, (err, decoded) => {
-    if (err) return res.status(401).json({ message: "Invalid token" });
+    if (err) {
+      console.log("JWT ERROR:", err);
+      return res.status(401).json({ message: "Invalid token" });
+    }
 
     req.user = decoded;
     next();
@@ -74,22 +88,47 @@ function verifyToken(req, res, next) {
 }
 
 /* ===============================
-   MULTER SETUP
+   FILE UPLOAD SETUP
 ================================ */
 
 const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
+  destination: (req, file, cb) => {
     cb(null, uploadDir);
   },
-  filename: function (req, file, cb) {
+  filename: (req, file, cb) => {
     cb(null, Date.now() + "-" + file.originalname);
   }
 });
-
 const upload = multer({ storage });
 
 /* ===============================
-   LOGIN
+   LOGIN (OWNER CONTROLLED)
+================================ */
+
+app.post("/login", (req, res) => {
+  const { username, password } = req.body;
+
+  const admins = getAdmins();
+
+  const user = admins.find(
+    (u) => u.username === username && u.password === password
+  );
+
+  if (!user) {
+    return res.status(401).json({ message: "Invalid credentials" });
+  }
+
+  const token = jwt.sign(
+    { username },
+    SECRET,
+    { expiresIn: "4h" }
+  );
+
+  res.json({ token });
+});
+
+/* ===============================
+   LOGIN ROUTE
 ================================ */
 
 app.post("/login", (req, res) => {
@@ -102,10 +141,15 @@ app.post("/login", (req, res) => {
     u => u.username === username && u.password === password
   );
 
-  if (!user)
+  if (!user) {
     return res.status(401).json({ message: "Invalid credentials" });
+  }
 
-  const token = jwt.sign({ username }, SECRET, { expiresIn: "4h" });
+  const token = jwt.sign(
+    { username },
+    SECRET,
+    { expiresIn: "4h" }
+  );
 
   res.json({ token });
 });
@@ -114,12 +158,13 @@ app.post("/login", (req, res) => {
    BLOG ROUTES
 ================================ */
 
+// public get blogs
 app.get("/blogs", (req, res) => {
   res.json(readData().blogs);
 });
 
+// add blog (protected)
 app.post("/blogs", verifyToken, (req, res) => {
-
   const data = readData();
 
   const newBlog = {
@@ -134,12 +179,12 @@ app.post("/blogs", verifyToken, (req, res) => {
   res.json(newBlog);
 });
 
+// delete blog
 app.delete("/blogs/:id", verifyToken, (req, res) => {
-
   const data = readData();
 
   data.blogs = data.blogs.filter(
-    b => b.id != req.params.id
+    (b) => b.id != req.params.id
   );
 
   saveData(data);
@@ -151,50 +196,61 @@ app.delete("/blogs/:id", verifyToken, (req, res) => {
    MEDIA ROUTES
 ================================ */
 
+// public get media
 app.get("/media", (req, res) => {
   res.json(readData().media);
 });
 
 /* ===============================
-   MEDIA UPLOAD (FINAL FIX)
+   MEDIA UPLOAD (FIXED)
 ================================ */
 
-app.post("/upload", verifyToken, upload.single("file"), (req, res) => {
+app.post("/upload", verifyToken, (req, res) => {
 
-  try {
+  upload.single("file")(req, res, function (err) {
 
-    if (!req.file)
+    if (err) {
+      console.log("Upload error:", err);
+      return res.status(500).json({ message: "Upload failed" });
+    }
+
+    if (!req.file) {
       return res.status(400).json({ message: "No file uploaded" });
+    }
 
-    const data = readData();
+    try {
 
-    const type = req.file.mimetype.startsWith("video")
-      ? "video"
-      : "photo";
+      const data = readData();
 
-    const newMedia = {
-      id: Date.now(),
-      type,
-      url: `${req.protocol}://${req.get("host")}/uploads/${req.file.filename}`
-    };
+      const type = req.file.mimetype.startsWith("video")
+        ? "video"
+        : "photo";
 
-    data.media.push(newMedia);
-    saveData(data);
+      const newMedia = {
+        id: Date.now(),
+        type,
+        url: `https://naturopathy-backend.onrender.com/uploads/${req.file.filename}`
+      };
 
-    res.json(newMedia);
+      data.media.push(newMedia);
+      saveData(data);
 
-  } catch (err) {
-    console.log("UPLOAD ERROR:", err);
-    res.status(500).json({ message: "Server error" });
-  }
+      res.json(newMedia);
+
+    } catch (e) {
+      console.log("Server crash:", e);
+      res.status(500).json({ message: "Server error" });
+    }
+
+  });
+
 });
-
+// delete media
 app.delete("/media/:id", verifyToken, (req, res) => {
-
   const data = readData();
 
   data.media = data.media.filter(
-    m => m.id != req.params.id
+    (m) => m.id != req.params.id
   );
 
   saveData(data);
@@ -205,7 +261,6 @@ app.delete("/media/:id", verifyToken, (req, res) => {
 /* ===============================
    SERVER START
 ================================ */
-
 const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, "0.0.0.0", () => {
