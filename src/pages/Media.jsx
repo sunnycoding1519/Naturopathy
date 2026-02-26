@@ -1,6 +1,6 @@
 import "./Media.css";
 import { useEffect, useState } from "react";
-import API from "../../api";
+import API from "../api";
 
 export default function Media(){
 
