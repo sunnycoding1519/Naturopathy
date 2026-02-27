@@ -7,7 +7,8 @@ const cors = require("cors");
 const multer = require("multer");
 const fs = require("fs");
 const jwt = require("jsonwebtoken");
-const path = require("path");
+const cloudinary = require("cloudinary").v2;
+const { CloudinaryStorage } = require("multer-storage-cloudinary");
 
 const app = express();
 
@@ -23,18 +24,28 @@ const ADMIN_FILE = "admins.json";
 const SECRET = "naturopathy_secret_key";
 
 /* ===============================
-   CREATE UPLOAD FOLDER (RENDER FIX)
+   CLOUDINARY CONFIG
 ================================ */
 
-// absolute uploads path (IMPORTANT)
-const uploadDir = path.join(__dirname, "uploads");
+cloudinary.config({
+  cloud_name: process.env.CLOUD_NAME,
+  api_key: process.env.API_KEY,
+  api_secret: process.env.API_SECRET
+});
 
-if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir, { recursive: true });
-}
+/* ===============================
+   CLOUDINARY STORAGE
+================================ */
 
-// serve uploads publicly
-app.use("/uploads", express.static(uploadDir));
+const storage = new CloudinaryStorage({
+  cloudinary: cloudinary,
+  params: {
+    folder: "naturopathy_media",
+    resource_type: "auto"
+  }
+});
+
+const upload = multer({ storage });
 
 /* ===============================
    HELPERS
@@ -72,21 +83,6 @@ function verifyToken(req, res, next) {
     next();
   });
 }
-
-/* ===============================
-   MULTER SETUP
-================================ */
-
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, uploadDir);
-  },
-  filename: function (req, file, cb) {
-    cb(null, Date.now() + "-" + file.originalname);
-  }
-});
-
-const upload = multer({ storage });
 
 /* ===============================
    LOGIN
@@ -156,7 +152,7 @@ app.get("/media", (req, res) => {
 });
 
 /* ===============================
-   MEDIA UPLOAD (FINAL FIX)
+   MEDIA UPLOAD (CLOUDINARY)
 ================================ */
 
 app.post("/upload", verifyToken, upload.single("file"), (req, res) => {
@@ -175,7 +171,7 @@ app.post("/upload", verifyToken, upload.single("file"), (req, res) => {
     const newMedia = {
       id: Date.now(),
       type,
-      url: `${req.protocol}://${req.get("host")}/uploads/${req.file.filename}`
+      url: req.file.path   // Cloudinary URL
     };
 
     data.media.push(newMedia);
@@ -188,6 +184,10 @@ app.post("/upload", verifyToken, upload.single("file"), (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 });
+
+/* ===============================
+   DELETE MEDIA
+================================ */
 
 app.delete("/media/:id", verifyToken, (req, res) => {
 
