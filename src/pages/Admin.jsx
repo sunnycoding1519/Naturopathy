@@ -2,30 +2,44 @@ import "./Admin.css";
 import { useState, useEffect } from "react";
 import API from "../api";
 
-export default function Admin(){
+export default function Admin() {
 
-  const [title,setTitle]=useState("");
-  const [content,setContent]=useState("");
-  const [file,setFile]=useState(null);
-  const [preview,setPreview]=useState(null);
-  const [progress,setProgress]=useState(0);
-  const [message,setMessage]=useState("");
+  const [title, setTitle] = useState("");
+  const [content, setContent] = useState("");
+  const [file, setFile] = useState(null);
+  const [preview, setPreview] = useState(null);
+  const [progress, setProgress] = useState(0);
+  const [message, setMessage] = useState("");
 
-  const [blogs,setBlogs]=useState([]);
-  const [media,setMedia]=useState([]);
+  const [blogs, setBlogs] = useState([]);
+  const [media, setMedia] = useState([]);
 
-  useEffect(()=>{
+  /* ===============================
+     TOKEN HELPER ⭐
+  ============================== */
+  const authHeader = () => ({
+    Authorization: `Bearer ${localStorage.getItem("token")}`
+  });
+
+  useEffect(() => {
     fetchData();
-  },[]);
+  }, []);
 
-  const fetchData=()=>{
-    API.get("/blogs").then(res=>setBlogs(res.data));
-    API.get("/media").then(res=>setMedia(res.data));
+  const fetchData = () => {
+    API.get("/blogs").then(res => setBlogs(res.data));
+    API.get("/media").then(res => setMedia(res.data));
   };
 
-  /* BLOG */
-  const addBlog=()=>{
-    API.post("/blogs",{title,content}).then(()=>{
+  /* ===============================
+     ADD BLOG (FIXED)
+  ============================== */
+  const addBlog = () => {
+
+    API.post(
+      "/blogs",
+      { title, content },
+      { headers: authHeader() }
+    ).then(() => {
       setTitle("");
       setContent("");
       setMessage("✅ Blog Added Successfully");
@@ -33,58 +47,83 @@ export default function Admin(){
     });
   };
 
-  /* FILE SELECT */
-  const handleFile=(e)=>{
-    const selected=e.target.files[0];
+  /* ===============================
+     FILE SELECT
+  ============================== */
+  const handleFile = (e) => {
+
+    const selected = e.target.files[0];
     setFile(selected);
 
-    if(selected){
+    if (selected) {
       setPreview(URL.createObjectURL(selected));
     }
   };
 
-  /* UPLOAD MEDIA */
- const uploadMedia = async () => {
+  /* ===============================
+     UPLOAD MEDIA (FINAL FIX ⭐)
+  ============================== */
+  const uploadMedia = async () => {
 
-    if(!file) return;
+    if (!file) {
+      alert("Select file first");
+      return;
+    }
 
-    const formData=new FormData();
-    formData.append("file",file);
+    const formData = new FormData();
+    formData.append("file", file);
 
-    API.post("/upload",formData,{
-      headers:{
-        "Content-Type":"multipart/form-data"
-      },
-      onUploadProgress:(data)=>{
-        const percent=Math.round(
-          (data.loaded*100)/data.total
-        );
-        setProgress(percent);
-      }
-    })
-    .then(()=>{
+    try {
+
+      await API.post("/upload", formData, {
+        headers: {
+          ...authHeader(),
+          "Content-Type": "multipart/form-data"
+        },
+        onUploadProgress: (data) => {
+          const percent = Math.round(
+            (data.loaded * 100) / data.total
+          );
+          setProgress(percent);
+        }
+      });
+
       setMessage("🎉 Upload Successful!");
       setProgress(0);
       setPreview(null);
       setFile(null);
       fetchData();
-    });
+
+    } catch (err) {
+      console.log(err);
+      setMessage("❌ Upload Failed");
+    }
   };
 
-  const deleteBlog=(id)=>{
-    API.delete("/blogs/"+id).then(fetchData);
+  /* ===============================
+     DELETE BLOG
+  ============================== */
+  const deleteBlog = (id) => {
+    API.delete("/blogs/" + id, {
+      headers: authHeader()
+    }).then(fetchData);
   };
 
-  const deleteMedia=(id)=>{
-    API.delete("/media/"+id).then(fetchData);
+  /* ===============================
+     DELETE MEDIA
+  ============================== */
+  const deleteMedia = (id) => {
+    API.delete("/media/" + id, {
+      headers: authHeader()
+    }).then(fetchData);
   };
 
-  const logout=()=>{
+  const logout = () => {
     localStorage.removeItem("token");
-    window.location="/login";
+    window.location = "/login";
   };
 
-  return(
+  return (
     <div className="admin-container">
 
       <div className="admin-header">
@@ -101,13 +140,13 @@ export default function Admin(){
         <input
           placeholder="Blog Title"
           value={title}
-          onChange={e=>setTitle(e.target.value)}
+          onChange={e => setTitle(e.target.value)}
         />
 
         <textarea
           placeholder="Blog Content"
           value={content}
-          onChange={e=>setContent(e.target.value)}
+          onChange={e => setContent(e.target.value)}
         />
 
         <button onClick={addBlog}>Publish Blog</button>
@@ -119,24 +158,22 @@ export default function Admin(){
 
         <label className="upload-box">
           Choose File
-          <input type="file" onChange={handleFile}/>
+          <input type="file" onChange={handleFile} />
         </label>
 
-        {/* PREVIEW */}
         {preview && (
           <div className="preview">
             {file.type.startsWith("video") ? (
-              <video src={preview} controls/>
+              <video src={preview} controls />
             ) : (
-              <img src={preview} alt="preview"/>
+              <img src={preview} alt="preview" />
             )}
           </div>
         )}
 
-        {/* PROGRESS */}
-        {progress>0 && (
+        {progress > 0 && (
           <div className="progress-bar">
-            <div style={{width:`${progress}%`}}></div>
+            <div style={{ width: `${progress}%` }}></div>
           </div>
         )}
 
@@ -146,10 +183,10 @@ export default function Admin(){
       {/* BLOG LIST */}
       <div className="admin-card">
         <h3>All Blogs</h3>
-        {blogs.map(b=>(
+        {blogs.map(b => (
           <div key={b.id} className="admin-item">
             {b.title}
-            <button onClick={()=>deleteBlog(b.id)}>Delete</button>
+            <button onClick={() => deleteBlog(b.id)}>Delete</button>
           </div>
         ))}
       </div>
@@ -157,10 +194,10 @@ export default function Admin(){
       {/* MEDIA LIST */}
       <div className="admin-card">
         <h3>All Media</h3>
-        {media.map(m=>(
+        {media.map(m => (
           <div key={m.id} className="admin-item">
             {m.type}
-            <button onClick={()=>deleteMedia(m.id)}>Delete</button>
+            <button onClick={() => deleteMedia(m.id)}>Delete</button>
           </div>
         ))}
       </div>
