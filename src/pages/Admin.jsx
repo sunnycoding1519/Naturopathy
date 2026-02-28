@@ -14,6 +14,15 @@ export default function Admin() {
   const [blogs, setBlogs] = useState([]);
   const [media, setMedia] = useState([]);
 
+
+  useEffect(() => {
+  const token = localStorage.getItem("token");
+
+  if (!token) {
+    window.location.href = "/";
+  }
+}, []);
+
   /* ===============================
      TOKEN HELPER ⭐
   ============================== */
