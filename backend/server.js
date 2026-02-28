@@ -12,9 +12,7 @@ const multer = require("multer");
 const cloudinary = require("cloudinary").v2;
 const { CloudinaryStorage } = require("multer-storage-cloudinary");
 const fs = require("fs");
-
-const Blog = require("./models/Blog");
-const Media = require("./models/Media");
+const path = require("path");
 
 const app = express();
 
@@ -25,16 +23,29 @@ app.use(express.json());
    MONGODB CONNECT
 ================================ */
 
-mongoose.connect(process.env.MONGO_URI)
+mongoose.connect(process.env.MONGO_URI, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true
+})
 .then(()=>console.log("✅ MongoDB Connected"))
-.catch(err=>console.log(err));
+.catch(err=>{
+  console.error("Mongo Error:", err);
+  process.exit(1);
+});
+
+/* ===============================
+   LOAD MODELS (AFTER CONNECT)
+================================ */
+
+const Blog = require("./models/Blog");
+const Media = require("./models/Media");
 
 /* ===============================
    CONFIG
 ================================ */
 
-const ADMIN_FILE = "admins.json";
-const SECRET = process.env.JWT_SECRET;
+const ADMIN_FILE = path.join(__dirname,"admins.json");
+const SECRET = process.env.JWT_SECRET || "secret123";
 
 /* ===============================
    CLOUDINARY CONFIG
@@ -52,10 +63,10 @@ cloudinary.config({
 
 const storage = new CloudinaryStorage({
   cloudinary,
-  params: {
+  params: async (req, file) => ({
     folder: "naturopathy_media",
     resource_type: "auto"
-  }
+  })
 });
 
 const upload = multer({ storage });
@@ -65,6 +76,7 @@ const upload = multer({ storage });
 ================================ */
 
 function getAdmins() {
+  if (!fs.existsSync(ADMIN_FILE)) return [];
   return JSON.parse(fs.readFileSync(ADMIN_FILE));
 }
 
@@ -111,38 +123,57 @@ app.post("/login",(req,res)=>{
 });
 
 /* ===============================
-   BLOG ROUTES (MONGODB)
+   BLOG ROUTES
 ================================ */
 
 app.get("/blogs", async(req,res)=>{
-  const blogs = await Blog.find().sort({createdAt:-1});
-  res.json(blogs);
+  try{
+    const blogs = await Blog.find().sort({createdAt:-1});
+    res.json(blogs);
+  }catch(err){
+    console.error(err);
+    res.status(500).json({message:"Failed to fetch blogs"});
+  }
 });
 
 app.post("/blogs", verifyToken, async(req,res)=>{
+  try{
+    const blog = new Blog({
+      title:req.body.title,
+      content:req.body.content
+    });
 
-  const blog = new Blog({
-    title:req.body.title,
-    content:req.body.content
-  });
+    await blog.save();
+    res.json(blog);
 
-  await blog.save();
-  res.json(blog);
+  }catch(err){
+    console.error(err);
+    res.status(500).json({message:"Blog create failed"});
+  }
 });
 
 app.delete("/blogs/:id", verifyToken, async(req,res)=>{
-
-  await Blog.findByIdAndDelete(req.params.id);
-  res.send("Blog deleted");
+  try{
+    await Blog.findByIdAndDelete(req.params.id);
+    res.json({message:"Blog deleted"});
+  }catch(err){
+    console.error(err);
+    res.status(500).json({message:"Delete failed"});
+  }
 });
 
 /* ===============================
-   MEDIA ROUTES (MONGODB + CLOUDINARY)
+   MEDIA ROUTES
 ================================ */
 
 app.get("/media", async(req,res)=>{
-  const media = await Media.find().sort({createdAt:-1});
-  res.json(media);
+  try{
+    const media = await Media.find().sort({createdAt:-1});
+    res.json(media);
+  }catch(err){
+    console.error(err);
+    res.status(500).json({message:"Media fetch failed"});
+  }
 });
 
 app.post("/upload", verifyToken, upload.single("file"), async(req,res)=>{
@@ -166,15 +197,19 @@ app.post("/upload", verifyToken, upload.single("file"), async(req,res)=>{
     res.json(media);
 
   }catch(err){
-    console.log(err);
+    console.error("UPLOAD ERROR:",err);
     res.status(500).json({message:"Upload failed"});
   }
 });
 
 app.delete("/media/:id", verifyToken, async(req,res)=>{
-
-  await Media.findByIdAndDelete(req.params.id);
-  res.send("Media deleted");
+  try{
+    await Media.findByIdAndDelete(req.params.id);
+    res.json({message:"Media deleted"});
+  }catch(err){
+    console.error(err);
+    res.status(500).json({message:"Delete failed"});
+  }
 });
 
 /* ===============================
