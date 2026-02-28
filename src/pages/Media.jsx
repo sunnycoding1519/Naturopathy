@@ -7,10 +7,17 @@ export default function Media() {
   const [media, setMedia] = useState([]);
 
   useEffect(() => {
-    API.get("/media")
-      .then(res => setMedia(res.data))
-      .catch(err => console.log("Media fetch error:", err));
+    fetchMedia();
   }, []);
+
+  const fetchMedia = async () => {
+    try{
+      const res = await API.get("/media");
+      setMedia(res.data);
+    }catch(err){
+      console.log("Media fetch error:", err);
+    }
+  };
 
   return (
     <div className="container media-page">
@@ -20,13 +27,13 @@ export default function Media() {
       <div className="media-grid">
 
         {media.map((item) => (
-          <div key={item.id} className="media-card">
+          <div key={item._id} className="media-card">
 
             {item.type === "photo" ? (
-              <img src={item.url} alt="media" />
+              <img src={item.url} alt="media"/>
             ) : (
               <video controls>
-                <source src={item.url} />
+                <source src={item.url}/>
               </video>
             )}
 
