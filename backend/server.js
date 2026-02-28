@@ -2,6 +2,8 @@
    NATUROPATHY HEALING BACKEND
 ================================ */
 
+require("dotenv").config();
+
 const express = require("express");
 const cors = require("cors");
 const multer = require("multer");
@@ -21,16 +23,24 @@ app.use(express.json());
 
 const DATA_FILE = "data.json";
 const ADMIN_FILE = "admins.json";
-const SECRET = "naturopathy_secret_key";
+const SECRET = process.env.JWT_SECRET || "naturopathy_secret_key";
 
 /* ===============================
-   CLOUDINARY CONFIG
+   ENSURE DATA FILE EXISTS (RENDER FIX)
+================================ */
+
+if (!fs.existsSync(DATA_FILE)) {
+  fs.writeFileSync(DATA_FILE, JSON.stringify({ blogs: [], media: [] }));
+}
+
+/* ===============================
+   CLOUDINARY CONFIG (FIXED)
 ================================ */
 
 cloudinary.config({
-  cloud_name: process.env.CLOUD_NAME,
-  api_key: process.env.API_KEY,
-  api_secret: process.env.API_SECRET
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET
 });
 
 /* ===============================
@@ -38,7 +48,7 @@ cloudinary.config({
 ================================ */
 
 const storage = new CloudinaryStorage({
-  cloudinary: cloudinary,
+  cloudinary,
   params: {
     folder: "naturopathy_media",
     resource_type: "auto"
@@ -64,15 +74,15 @@ function getAdmins() {
 }
 
 /* ===============================
-   AUTH MIDDLEWARE
+   AUTH MIDDLEWARE (FIXED SAFE)
 ================================ */
 
 function verifyToken(req, res, next) {
 
   const authHeader = req.headers.authorization;
 
-  if (!authHeader)
-    return res.status(403).json({ message: "No token" });
+  if (!authHeader || !authHeader.startsWith("Bearer "))
+    return res.status(401).json({ message: "No token provided" });
 
   const token = authHeader.split(" ")[1];
 
@@ -101,7 +111,7 @@ app.post("/login", (req, res) => {
   if (!user)
     return res.status(401).json({ message: "Invalid credentials" });
 
-  const token = jwt.sign({ username }, SECRET, { expiresIn: "4h" });
+  const token = jwt.sign({ username }, SECRET, { expiresIn: "1d" });
 
   res.json({ token });
 });
@@ -152,7 +162,7 @@ app.get("/media", (req, res) => {
 });
 
 /* ===============================
-   MEDIA UPLOAD (CLOUDINARY)
+   MEDIA UPLOAD (CLOUDINARY FIXED)
 ================================ */
 
 app.post("/upload", verifyToken, upload.single("file"), (req, res) => {
