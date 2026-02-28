@@ -12,7 +12,9 @@ const multer = require("multer");
 const cloudinary = require("cloudinary").v2;
 const { CloudinaryStorage } = require("multer-storage-cloudinary");
 const fs = require("fs");
-const path = require("path");
+
+const Blog = require("./models/Blog");
+const Media = require("./models/Media");
 
 const app = express();
 
@@ -20,32 +22,38 @@ app.use(cors());
 app.use(express.json());
 
 /* ===============================
-   MONGODB CONNECT
+   ENV CHECK (VERY IMPORTANT)
 ================================ */
+
+if (!process.env.MONGO_URI) {
+  console.log("❌ MONGO_URI missing");
+}
+
+if (!process.env.JWT_SECRET) {
+  console.log("❌ JWT_SECRET missing");
+}
+
+/* ===============================
+   MONGODB CONNECT (SAFE VERSION)
+================================ */
+
+mongoose.set("strictQuery", true);
 
 mongoose.connect(process.env.MONGO_URI, {
   useNewUrlParser: true,
   useUnifiedTopology: true
 })
-.then(()=>console.log("✅ MongoDB Connected"))
-.catch(err=>{
-  console.error("Mongo Error:", err);
-  process.exit(1);
+.then(() => console.log("✅ MongoDB Connected"))
+.catch(err => {
+  console.error("❌ MongoDB Error:", err.message);
 });
-
-/* ===============================
-   LOAD MODELS (AFTER CONNECT)
-================================ */
-
-const Blog = require("./models/Blog");
-const Media = require("./models/Media");
 
 /* ===============================
    CONFIG
 ================================ */
 
-const ADMIN_FILE = path.join(__dirname,"admins.json");
-const SECRET = process.env.JWT_SECRET || "secret123";
+const ADMIN_FILE = "admins.json";
+const SECRET = process.env.JWT_SECRET || "naturopathy_secret_key";
 
 /* ===============================
    CLOUDINARY CONFIG
@@ -76,7 +84,6 @@ const upload = multer({ storage });
 ================================ */
 
 function getAdmins() {
-  if (!fs.existsSync(ADMIN_FILE)) return [];
   return JSON.parse(fs.readFileSync(ADMIN_FILE));
 }
 
@@ -84,17 +91,17 @@ function getAdmins() {
    AUTH MIDDLEWARE
 ================================ */
 
-function verifyToken(req,res,next){
+function verifyToken(req, res, next) {
 
   const authHeader = req.headers.authorization;
 
-  if(!authHeader || !authHeader.startsWith("Bearer "))
-    return res.status(401).json({message:"No token"});
+  if (!authHeader || !authHeader.startsWith("Bearer "))
+    return res.status(401).json({ message: "No token" });
 
   const token = authHeader.split(" ")[1];
 
-  jwt.verify(token, SECRET,(err,decoded)=>{
-    if(err) return res.status(401).json({message:"Invalid token"});
+  jwt.verify(token, SECRET, (err, decoded) => {
+    if (err) return res.status(401).json({ message: "Invalid token" });
     req.user = decoded;
     next();
   });
@@ -104,61 +111,56 @@ function verifyToken(req,res,next){
    LOGIN
 ================================ */
 
-app.post("/login",(req,res)=>{
+app.post("/login", (req, res) => {
 
-  const {username,password} = req.body;
+  const { username, password } = req.body;
 
   const admins = getAdmins();
 
   const user = admins.find(
-    u=>u.username===username && u.password===password
+    u => u.username === username && u.password === password
   );
 
-  if(!user)
-    return res.status(401).json({message:"Invalid credentials"});
+  if (!user)
+    return res.status(401).json({ message: "Invalid credentials" });
 
-  const token = jwt.sign({username},SECRET,{expiresIn:"1d"});
+  const token = jwt.sign({ username }, SECRET, { expiresIn: "1d" });
 
-  res.json({token});
+  res.json({ token });
 });
 
 /* ===============================
    BLOG ROUTES
 ================================ */
 
-app.get("/blogs", async(req,res)=>{
-  try{
-    const blogs = await Blog.find().sort({createdAt:-1});
+app.get("/blogs", async (req, res) => {
+  try {
+    const blogs = await Blog.find().sort({ createdAt: -1 });
     res.json(blogs);
-  }catch(err){
-    console.error(err);
-    res.status(500).json({message:"Failed to fetch blogs"});
+  } catch (err) {
+    res.status(500).json({ message: "Blog fetch error" });
   }
 });
 
-app.post("/blogs", verifyToken, async(req,res)=>{
-  try{
-    const blog = new Blog({
-      title:req.body.title,
-      content:req.body.content
+app.post("/blogs", verifyToken, async (req, res) => {
+  try {
+    const blog = await Blog.create({
+      title: req.body.title,
+      content: req.body.content
     });
 
-    await blog.save();
     res.json(blog);
-
-  }catch(err){
-    console.error(err);
-    res.status(500).json({message:"Blog create failed"});
+  } catch (err) {
+    res.status(500).json({ message: "Blog create failed" });
   }
 });
 
-app.delete("/blogs/:id", verifyToken, async(req,res)=>{
-  try{
+app.delete("/blogs/:id", verifyToken, async (req, res) => {
+  try {
     await Blog.findByIdAndDelete(req.params.id);
-    res.json({message:"Blog deleted"});
-  }catch(err){
-    console.error(err);
-    res.status(500).json({message:"Delete failed"});
+    res.send("Blog deleted");
+  } catch {
+    res.status(500).json({ message: "Delete failed" });
   }
 });
 
@@ -166,49 +168,45 @@ app.delete("/blogs/:id", verifyToken, async(req,res)=>{
    MEDIA ROUTES
 ================================ */
 
-app.get("/media", async(req,res)=>{
-  try{
-    const media = await Media.find().sort({createdAt:-1});
+app.get("/media", async (req, res) => {
+  try {
+    const media = await Media.find().sort({ createdAt: -1 });
     res.json(media);
-  }catch(err){
-    console.error(err);
-    res.status(500).json({message:"Media fetch failed"});
+  } catch {
+    res.status(500).json({ message: "Media fetch error" });
   }
 });
 
-app.post("/upload", verifyToken, upload.single("file"), async(req,res)=>{
+app.post("/upload", verifyToken, upload.single("file"), async (req, res) => {
 
-  try{
+  try {
 
-    if(!req.file)
-      return res.status(400).json({message:"No file uploaded"});
+    if (!req.file)
+      return res.status(400).json({ message: "No file uploaded" });
 
     const type = req.file.mimetype.startsWith("video")
       ? "video"
       : "photo";
 
-    const media = new Media({
+    const media = await Media.create({
       type,
-      url:req.file.path
+      url: req.file.path
     });
-
-    await media.save();
 
     res.json(media);
 
-  }catch(err){
-    console.error("UPLOAD ERROR:",err);
-    res.status(500).json({message:"Upload failed"});
+  } catch (err) {
+    console.error("UPLOAD ERROR:", err);
+    res.status(500).json({ message: "Upload failed" });
   }
 });
 
-app.delete("/media/:id", verifyToken, async(req,res)=>{
-  try{
+app.delete("/media/:id", verifyToken, async (req, res) => {
+  try {
     await Media.findByIdAndDelete(req.params.id);
-    res.json({message:"Media deleted"});
-  }catch(err){
-    console.error(err);
-    res.status(500).json({message:"Delete failed"});
+    res.send("Media deleted");
+  } catch {
+    res.status(500).json({ message: "Delete failed" });
   }
 });
 
@@ -218,6 +216,6 @@ app.delete("/media/:id", verifyToken, async(req,res)=>{
 
 const PORT = process.env.PORT || 5000;
 
-app.listen(PORT,()=>{
+app.listen(PORT, () => {
   console.log(`🚀 Server running on ${PORT}`);
 });
