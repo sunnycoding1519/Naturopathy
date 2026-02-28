@@ -2,15 +2,19 @@
    NATUROPATHY HEALING BACKEND
 ================================ */
 
+require("dotenv").config();
 
 const express = require("express");
 const cors = require("cors");
-const multer = require("multer");
-const fs = require("fs");
 const jwt = require("jsonwebtoken");
-require("dotenv").config();
+const mongoose = require("mongoose");
+const multer = require("multer");
 const cloudinary = require("cloudinary").v2;
 const { CloudinaryStorage } = require("multer-storage-cloudinary");
+const fs = require("fs");
+
+const Blog = require("./models/Blog");
+const Media = require("./models/Media");
 
 const app = express();
 
@@ -18,23 +22,22 @@ app.use(cors());
 app.use(express.json());
 
 /* ===============================
+   MONGODB CONNECT
+================================ */
+
+mongoose.connect(process.env.MONGO_URI)
+.then(()=>console.log("✅ MongoDB Connected"))
+.catch(err=>console.log(err));
+
+/* ===============================
    CONFIG
 ================================ */
 
-const DATA_FILE = "data.json";
 const ADMIN_FILE = "admins.json";
-const SECRET = process.env.JWT_SECRET || "naturopathy_secret_key";
+const SECRET = process.env.JWT_SECRET;
 
 /* ===============================
-   ENSURE DATA FILE EXISTS (RENDER FIX)
-================================ */
-
-if (!fs.existsSync(DATA_FILE)) {
-  fs.writeFileSync(DATA_FILE, JSON.stringify({ blogs: [], media: [] }));
-}
-
-/* ===============================
-   CLOUDINARY CONFIG (FIXED)
+   CLOUDINARY CONFIG
 ================================ */
 
 cloudinary.config({
@@ -61,34 +64,25 @@ const upload = multer({ storage });
    HELPERS
 ================================ */
 
-function readData() {
-  return JSON.parse(fs.readFileSync(DATA_FILE));
-}
-
-function saveData(data) {
-  fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2));
-}
-
 function getAdmins() {
   return JSON.parse(fs.readFileSync(ADMIN_FILE));
 }
 
 /* ===============================
-   AUTH MIDDLEWARE (FIXED SAFE)
+   AUTH MIDDLEWARE
 ================================ */
 
-function verifyToken(req, res, next) {
+function verifyToken(req,res,next){
 
   const authHeader = req.headers.authorization;
 
-  if (!authHeader || !authHeader.startsWith("Bearer "))
-    return res.status(401).json({ message: "No token provided" });
+  if(!authHeader || !authHeader.startsWith("Bearer "))
+    return res.status(401).json({message:"No token"});
 
   const token = authHeader.split(" ")[1];
 
-  jwt.verify(token, SECRET, (err, decoded) => {
-    if (err) return res.status(401).json({ message: "Invalid token" });
-
+  jwt.verify(token, SECRET,(err,decoded)=>{
+    if(err) return res.status(401).json({message:"Invalid token"});
     req.user = decoded;
     next();
   });
@@ -98,117 +92,88 @@ function verifyToken(req, res, next) {
    LOGIN
 ================================ */
 
-app.post("/login", (req, res) => {
+app.post("/login",(req,res)=>{
 
-  const { username, password } = req.body;
+  const {username,password} = req.body;
 
   const admins = getAdmins();
 
   const user = admins.find(
-    u => u.username === username && u.password === password
+    u=>u.username===username && u.password===password
   );
 
-  if (!user)
-    return res.status(401).json({ message: "Invalid credentials" });
+  if(!user)
+    return res.status(401).json({message:"Invalid credentials"});
 
-  const token = jwt.sign({ username }, SECRET, { expiresIn: "1d" });
+  const token = jwt.sign({username},SECRET,{expiresIn:"1d"});
 
-  res.json({ token });
+  res.json({token});
 });
 
 /* ===============================
-   BLOG ROUTES
+   BLOG ROUTES (MONGODB)
 ================================ */
 
-app.get("/blogs", (req, res) => {
-  res.json(readData().blogs);
+app.get("/blogs", async(req,res)=>{
+  const blogs = await Blog.find().sort({createdAt:-1});
+  res.json(blogs);
 });
 
-app.post("/blogs", verifyToken, (req, res) => {
+app.post("/blogs", verifyToken, async(req,res)=>{
 
-  const data = readData();
+  const blog = new Blog({
+    title:req.body.title,
+    content:req.body.content
+  });
 
-  const newBlog = {
-    id: Date.now(),
-    title: req.body.title,
-    content: req.body.content
-  };
-
-  data.blogs.push(newBlog);
-  saveData(data);
-
-  res.json(newBlog);
+  await blog.save();
+  res.json(blog);
 });
 
-app.delete("/blogs/:id", verifyToken, (req, res) => {
+app.delete("/blogs/:id", verifyToken, async(req,res)=>{
 
-  const data = readData();
-
-  data.blogs = data.blogs.filter(
-    b => b.id != req.params.id
-  );
-
-  saveData(data);
-
+  await Blog.findByIdAndDelete(req.params.id);
   res.send("Blog deleted");
 });
 
 /* ===============================
-   MEDIA ROUTES
+   MEDIA ROUTES (MONGODB + CLOUDINARY)
 ================================ */
 
-app.get("/media", (req, res) => {
-  res.json(readData().media);
+app.get("/media", async(req,res)=>{
+  const media = await Media.find().sort({createdAt:-1});
+  res.json(media);
 });
 
-/* ===============================
-   MEDIA UPLOAD (CLOUDINARY FIXED)
-================================ */
+app.post("/upload", verifyToken, upload.single("file"), async(req,res)=>{
 
-app.post("/upload", verifyToken, upload.single("file"), (req, res) => {
+  try{
 
-  try {
-
-    if (!req.file)
-      return res.status(400).json({ message: "No file uploaded" });
-
-    const data = readData();
+    if(!req.file)
+      return res.status(400).json({message:"No file uploaded"});
 
     const type = req.file.mimetype.startsWith("video")
       ? "video"
       : "photo";
 
-    const newMedia = {
-      id: Date.now(),
+    const media = new Media({
       type,
-      url: req.file.path   // Cloudinary URL
-    };
+      url:req.file.path
+    });
 
-    data.media.push(newMedia);
-    saveData(data);
+    await media.save();
 
-    res.json(newMedia);
+    res.json(media);
 
-  } catch (err) {
-    console.log("UPLOAD ERROR:", err);
-    res.status(500).json({ message: "Server error" });
+  }catch(err){
+    console.log(err);
+    res.status(500).json({message:"Upload failed"});
   }
 });
 
-/* ===============================
-   DELETE MEDIA
-================================ */
+app.delete("/media/:id", verifyToken, async(req,res)=>{
 
-app.delete("/media/:id", verifyToken, (req, res) => {
-
-  const data = readData();
-
-  data.media = data.media.filter(
-    m => m.id != req.params.id
-  );
-
-  saveData(data);
-
+  await Media.findByIdAndDelete(req.params.id);
   res.send("Media deleted");
 });
 
@@ -218,6 +183,6 @@ app.delete("/media/:id", verifyToken, (req, res) => {
 
 const PORT = process.env.PORT || 5000;
 
-app.listen(PORT, "0.0.0.0", () => {
-  console.log(`✅ Server running on port ${PORT}`);
+app.listen(PORT,()=>{
+  console.log(`🚀 Server running on ${PORT}`);
 });

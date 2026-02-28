@@ -1,12 +1,16 @@
 const mongoose = require("mongoose");
 
 const MediaSchema = new mongoose.Schema({
-  type:String,
-  url:String,
-  createdAt:{
-    type:Date,
-    default:Date.now
+  type: {
+    type: String,
+    required: true
+  },
+  url: {
+    type: String,
+    required: true
   }
+}, {
+  timestamps: true
 });
 
-module.exports = mongoose.model("Media",MediaSchema);
+module.exports = mongoose.model("Media", MediaSchema);
