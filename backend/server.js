@@ -32,20 +32,17 @@ if (!process.env.MONGO_URI) {
 if (!process.env.JWT_SECRET) {
   console.log("❌ JWT_SECRET missing");
 }
-
 /* ===============================
-   MONGODB CONNECT (SAFE VERSION)
+   MONGODB CONNECT (FIXED)
 ================================ */
 
-mongoose.set("strictQuery", true);
-
-mongoose.connect(process.env.MONGO_URI, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true
+mongoose.connect(process.env.MONGO_URI)
+.then(() => {
+  console.log("✅ MongoDB Connected Successfully");
 })
-.then(() => console.log("✅ MongoDB Connected"))
 .catch(err => {
-  console.error("❌ MongoDB Error:", err.message);
+  console.error("❌ MongoDB Connection Error:", err.message);
+  process.exit(1); // server crash if DB fail
 });
 
 /* ===============================
