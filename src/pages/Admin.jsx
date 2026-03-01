@@ -15,7 +15,7 @@ export default function Admin() {
   const [media, setMedia] = useState([]);
 
 
-  useEffect(() => {
+ useEffect(() => {
   const token = localStorage.getItem("token");
 
   if (!token) {

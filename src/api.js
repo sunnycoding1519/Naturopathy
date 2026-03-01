@@ -1,10 +1,10 @@
 import axios from "axios";
 
 const API = axios.create({
-  baseURL: "https://naturopathy-backend.onrender.com"
+  baseURL: "https://naturopathy-backend.onrender.com",
 });
 
-// AUTO ATTACH TOKEN
+/* ✅ AUTO TOKEN ATTACH EVERY REQUEST */
 API.interceptors.request.use((config) => {
 
   const token = localStorage.getItem("token");

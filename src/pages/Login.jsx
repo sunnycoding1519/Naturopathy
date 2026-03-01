@@ -1,13 +1,11 @@
 import "./Login.css";
 import { useState } from "react";
 import API from "../api";
-import { useNavigate } from "react-router-dom";
 
 export default function Login(){
 
   const [username,setUsername]=useState("");
   const [password,setPassword]=useState("");
-  const navigate = useNavigate();
 
   const login = async () => {
 
@@ -17,10 +15,13 @@ export default function Login(){
         password
       });
 
+      // save token
       localStorage.setItem("token", res.data.token);
 
       alert("Login Successful ✅");
-      navigate("/admin");
+
+      // ✅ IMPORTANT FIX (reload page so token attach ho)
+      window.location.href = "/admin";
 
     }catch{
       alert("Wrong Username or Password");
