@@ -1,26 +1,140 @@
+/* =========================
+   LOGIN PAGE - MODERN UI
+========================= */
+
 .login-container{
-  height:80vh;
+  height:100vh;
   display:flex;
   justify-content:center;
   align-items:center;
+
+  /* Gradient Background */
+  background: linear-gradient(
+    135deg,
+    #0f2027,
+    #203a43,
+    #2c5364
+  );
+
+  font-family: "Poppins", sans-serif;
 }
 
+
+/* =========================
+   LOGIN BOX
+========================= */
+
 .login-box{
-  background:rgba(255,255,255,0.08);
-  padding:40px;
-  border-radius:14px;
-  width:320px;
+  width:360px;
+  padding:45px 35px;
+
+  border-radius:18px;
+
+  /* Glass Effect */
+  background: rgba(255,255,255,0.08);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+
+  border:1px solid rgba(255,255,255,0.15);
+
+  box-shadow:
+    0 20px 50px rgba(0,0,0,0.35);
+
   text-align:center;
+
+  animation: fadeIn 0.6s ease;
 }
+
+.login-box h2{
+  color:#fff;
+  margin-bottom:25px;
+  font-weight:600;
+  letter-spacing:1px;
+}
+
+
+/* =========================
+   INPUTS
+========================= */
 
 .login-box input{
   width:100%;
-  margin:10px 0;
-  padding:10px;
-  border:none;
-  border-radius:8px;
+  margin:12px 0;
+  padding:13px 14px;
+
+  border-radius:10px;
+  border:1px solid rgba(255,255,255,0.2);
+
+  background: rgba(255,255,255,0.12);
+  color:#fff;
+
+  outline:none;
+  font-size:14px;
+
+  transition:0.3s;
 }
+
+.login-box input::placeholder{
+  color:rgba(255,255,255,0.7);
+}
+
+.login-box input:focus{
+  border-color:#00ffd5;
+  box-shadow:0 0 12px rgba(0,255,213,0.4);
+  background: rgba(255,255,255,0.18);
+}
+
+
+/* =========================
+   BUTTON
+========================= */
 
 .login-box button{
   width:100%;
+  margin-top:18px;
+  padding:13px;
+
+  border:none;
+  border-radius:10px;
+
+  font-size:15px;
+  font-weight:600;
+  letter-spacing:.5px;
+
+  cursor:pointer;
+
+  color:#002b2b;
+
+  background: linear-gradient(
+    135deg,
+    #00ffd5,
+    #00c6ff
+  );
+
+  transition:0.3s ease;
+}
+
+.login-box button:hover{
+  transform:translateY(-2px);
+  box-shadow:0 10px 25px rgba(0,255,213,0.4);
+}
+
+.login-box button:active{
+  transform:scale(0.97);
+}
+
+
+/* =========================
+   ANIMATION
+========================= */
+
+@keyframes fadeIn{
+  from{
+    opacity:0;
+    transform:translateY(30px);
+  }
+  to{
+    opacity:1;
+    transform:translateY(0);
+  }
 }
