@@ -8,6 +8,7 @@ import Blog from "./pages/Blog";
 import Contact from "./pages/Contact";
 import Admin from "./pages/Admin";
 import Login from "./pages/Login";
+import Course from "./pages/Course";   // ✅ ADD THIS
 
 import ProtectedRoute from "./components/ProtectedRoute";
 
@@ -22,6 +23,7 @@ export default function App() {
           <Route path="/media" element={<Media />} />
           <Route path="/blog" element={<Blog />} />
           <Route path="/contact" element={<Contact />} />
+          <Route path="/course" element={<Course />} />  {/* ✅ ADD THIS */}
 
           <Route path="/login" element={<Login />} />
 
