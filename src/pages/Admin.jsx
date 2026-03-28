@@ -193,22 +193,22 @@ export default function Admin() {
       <div className="admin-card">
         <h3>All Blogs</h3>
         {blogs.map(b => (
-          <div key={b.id} className="admin-item">
-            {b.title}
-            <button onClick={() => deleteBlog(b.id)}>Delete</button>
-          </div>
-        ))}
+  <div key={b._id} className="admin-item">
+    {b.title}
+    <button onClick={() => deleteBlog(b._id)}>Delete</button>
+  </div>
+))}
       </div>
 
       {/* MEDIA LIST */}
       <div className="admin-card">
         <h3>All Media</h3>
-        {media.map(m => (
-          <div key={m.id} className="admin-item">
-            {m.type}
-            <button onClick={() => deleteMedia(m.id)}>Delete</button>
-          </div>
-        ))}
+       {media.map(m => (
+  <div key={m._id} className="admin-item">
+    {m.type}
+    <button onClick={() => deleteMedia(m._id)}>Delete</button>
+  </div>
+))}
       </div>
 
     </div>
