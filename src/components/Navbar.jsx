@@ -38,7 +38,7 @@ export default function Navbar() {
         <div className={open ? "nav-links active" : "nav-links"}>
 
           <Link className={location.pathname==="/"?"active":""} to="/">Home</Link>
-          <Link className={location.pathname==="/media"?"active":""} to="/media">Media</Link>
+          <Link className={location.pathname==="/media"?"active":""} to="/media">Gallery</Link>
           <Link className={location.pathname==="/blog"?"active":""} to="/blog">Blog</Link>
           <Link className={location.pathname==="/contact"?"active":""} to="/contact">Contact</Link>
           <Link className={location.pathname==="/admin"?"active":""} to="/admin">Admin</Link>

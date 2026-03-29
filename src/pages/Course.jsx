@@ -15,6 +15,12 @@ export default function Course() {
       title: "Shaswat Chikitsa",
       desc: "Traditional natural healing therapy for long-term wellness.",
       image: "/images/swami jii.jpg"
+    },
+    {
+      id: 3,
+      title: "Panchakarma",
+      desc: "Detoxification and rejuvenation therapy using five primary treatments.",
+      image: "/images/panchakarma.jpg"
     }
   ];
 
