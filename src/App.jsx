@@ -9,7 +9,7 @@ import Contact from "./pages/Contact";
 import Admin from "./pages/Admin";
 import Login from "./pages/Login";
 import Course from "./pages/Course";   // ✅ ADD THIS
-
+import Centers from "./pages/Centers";
 import ProtectedRoute from "./components/ProtectedRoute";
 
 import "./styles/global.css";
@@ -24,7 +24,7 @@ export default function App() {
           <Route path="/blog" element={<Blog />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/course" element={<Course />} />  {/* ✅ ADD THIS */}
-
+          <Route path="/centers" element={<Centers />} />
           <Route path="/login" element={<Login />} />
 
           <Route

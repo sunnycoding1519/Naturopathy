@@ -43,6 +43,7 @@ export default function Navbar() {
           <Link className={location.pathname==="/contact"?"active":""} to="/contact">Contact</Link>
           <Link className={location.pathname==="/admin"?"active":""} to="/admin">Admin</Link>
            <Link className={location.pathname==="/Course"?"active":""} to="/Course">Course</Link>
+          <Link className={location.pathname==="/centers"?"active":""} to="/centers">Centers</Link>
 
         </div>
 
