@@ -10,7 +10,7 @@ const centers = [
       "1/639,sec-J,Janki Mor, Near Gudmba Police Station,Jankipuram,Lucknow – 226026",
     phone: "+91 73550 95660",
     timing: "Mon – Sat : 8:00 AM – 4:00 PM",
-    image: "/Images/centers/center UP.jpeg",
+    image: "/images/centers/center UP.jpeg",
     map: "https://www.google.com/maps?q=Lucknow&output=embed",
     scripturl: "YOUR_SCRIPT_URL"
   },
@@ -21,7 +21,7 @@ const centers = [
     address: "Krishnpura, Ajmer Rajasthan",
     phone: "+91 8619452121",
     timing: "Sunday Only",
-    image: "/Images/centers/centers 2.jpeg",
+    image: "/images/centers/centers 2.jpeg",
     map: "https://www.google.com/maps?q=Ajmer&output=embed",
     scripturl: "YOUR_SCRIPT_URL"
   }

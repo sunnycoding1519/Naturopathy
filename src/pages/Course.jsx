@@ -14,13 +14,13 @@ export default function Course() {
       id: 2,
       title: "Shaswat Chikitsa",
       desc: "Traditional natural healing therapy for long-term wellness.",
-      image: "/images/swami jii.jpg"
+      image: "/images/swami ji.jpg"
     },
     {
       id: 3,
-      title: "Panchakarma",
+      title: "Hormonal Balance Therapy",
       desc: "Detoxification and rejuvenation therapy using five primary treatments.",
-      image: "/images/panchakarma.jpg"
+      image: "/images/hormonal.jpg"
     }
   ];
 
