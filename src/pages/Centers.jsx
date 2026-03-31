@@ -21,9 +21,45 @@ const centers = [
     address: "Krishnpura, Ajmer Rajasthan",
     phone: "+91 8619452121",
     timing: "Sunday Only",
-    image: "/images/centers/centers 2.jpeg",
+    image: "/images/centers/Ajmer.jpeg",
     map: "https://www.google.com/maps?q=Ajmer&output=embed",
     scripturl: "YOUR_SCRIPT_URL"
+  },
+  {
+    id: 3,
+    city: "Kanpur",
+    name: "Panchvidhi Shashwat Chikitsa Kendra – Kanpur",
+    address:
+      "M.I.G-8,Barra-6,Kanpur Nagar(UP)– 208027",
+    phone: "Dr.Anoop Kushwaha (+91 9559906407)",
+    timing: "Mon – Sat : 8:00 AM – 4:00 PM",
+    image: "/images/centers/Kanpur.jpeg",
+    /*map:
+      "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d5975.778133642752!2d80.94156777770996!3d26.913884999999997!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x399957c2c3d0fd13%3A0x871ab3b0fedf760!2sJankipuram%2C%20Lucknow!5e1!3m2!1sen!2sin!4v1767985897468!5m2!1sen!2sin",
+    scripturl:
+      "https://script.google.com/macros/s/AKfycbxaI8p4I87OKFh9eEsr9lPkqAQTlIqBNTlwdnL3n0B1gx_492vTKswJdvR2i1s288O5/exec"*/
+  },
+  {
+    id: 4,
+    city: "Ghaziabad",
+    name: "Shashwat Chikitsa Kendra – Ghaziabad",
+    address: "42-g,Nyay Khand-3,Indirapuram,Ghaziabad(UP)– 201014",
+    phone: "Dr.Swami Bhakti Parkash(+91 9711147989/+91 9312158400)",
+    timing: "Mon – Sat : 8:00 AM – 4:00 PM",
+    image: "/images/centers/Ghaziabad.jpeg",
+    /*map:
+      "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d5975.778133642752!2d80.94156777770996!3d26.913884999999997!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x399957c2c3d0fd13%3A0x871ab3b0fedf760!2sJankipuram%2C%20Lucknow!5e1*/
+  },
+  {
+    id: 5,
+    city: "Nagpur",
+    name: "Shashwat Chikitsa Kendra – Nagpur",
+    address: "Basement Shop no.3,Amar jyoti complex, Near Metro scan Pathology lab, Wardha Road,Dhantoli, Nagpur-440012",
+    phone: "(+91 9607395252/+91 7709856858)",
+    timing: "Mon – Sat : 8:00 AM – 4:00 PM",
+    image: "/images/centers/nagpur.jpeg",
+    /*map:
+      "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d5975.778133642752!2d80.94156777770996!3d26.913884999999997!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x399957c2c3d0fd13%3A0x871ab3b0fedf760!2sJankipuram%2C%20Lucknow!5e1*/
   }
 ];
 
