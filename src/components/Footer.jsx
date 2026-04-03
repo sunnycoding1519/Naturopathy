@@ -15,7 +15,7 @@ export default function Footer(){
 
         {/* HELPLINE */}
         <div className="footer-contact">
-          <p>📞 Helpline: +91 7355095660</p>
+          <p>📞 Helpline: +91 7355095660/+91 9250588545</p>
           <p>💬 WhatsApp: +91 9250588545</p>
         </div>
 
