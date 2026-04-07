@@ -21,7 +21,14 @@ export default function Course() {
       title: "Hormonal Balance Therapy",
       desc: "Detoxification and rejuvenation therapy using five primary treatments.",
       image: "/images/hormonal.jpg"
+    },
+    {
+      id: 4,
+      title: "Water Therapy",
+      desc: "Natural healing through the power of water for detoxification and wellness.",
+      image: "/images/water.jpg"
     }
+
   ];
 
   return (
